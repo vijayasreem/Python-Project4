@@ -8,7 +8,7 @@ import utils
 
 class Node:
 
-    def __init__(self, data: defaultdict[str], next = None, prev = None):
+    def __init__(self, data: defaultdict[str], next=None, prev=None):
         self.data = data
         self.next = next
         self.prev = prev
@@ -25,9 +25,12 @@ class MessageQueue:
         self.make_queue()
 
     def make_queue(self):
+        self.size = 0
         for data in utils.get_data_from_json(MESSAGES_DATA_PATH):
             node = Node(data)
             self._add(node)
+        if self.size == 0 or self.size == 1:
+            self.size = 1
 
     def get_front(self) -> Optional[Node]:
         if not self.size:
@@ -72,7 +75,6 @@ class MessageQueue:
         self.size -= 1
 
 
-
 def add_message(messages: MessageQueue, account_number: str) -> MessageQueue:
     print("We are very appreciated to hear from your thinking, your satisfied, dis-satisfied, "
           "and the idea to help us improve!!!")
@@ -105,6 +107,7 @@ def add_message(messages: MessageQueue, account_number: str) -> MessageQueue:
     messages.enqueue(message_data)
 
     return messages
+
 
 def read_message(messages: MessageQueue) -> Optional[MessageQueue]:
     print("Let's see the users' feedback to improve our application")
