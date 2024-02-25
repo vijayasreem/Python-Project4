@@ -2,7 +2,6 @@ import datetime
 import random
 from collections import defaultdict
 
-
 import sorts
 from consts import *
 import utils
@@ -37,7 +36,6 @@ class Users:
 
         return len(self.data) - 1
 
-
     def delete_user(self, index: int) -> None:
         """
         Delete user that delete it from database and current data structure
@@ -47,7 +45,6 @@ class Users:
         self.data = self.data[:index] + self.data[index + 1:]
         self.users_set.remove(account_number)
         utils.write_data_to_json(self.data, self.configs[FILE_NAME])
-
 
     @staticmethod
     def generate_account_number(account_len: int):
@@ -62,11 +59,22 @@ class Users:
 
         return ''.join(new_number)
 
-
     def update_information(self, index: int, field: str, change: str):
         """
         Changes the information of user.
         """
 
         self.data[index][field] = change
+        utils.write_data_to_json(self.data, self.configs[FILE_NAME])
+
+    def update_password(self, account_number: str, new_password: str):
+        """
+        Updates the password of a user.
+        """
+
+        for user in self.data:
+            if user[ACCOUNT_NUMBER] == account_number:
+                user[PASSWORD] = new_password
+                break
+
         utils.write_data_to_json(self.data, self.configs[FILE_NAME])
