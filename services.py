@@ -1,4 +1,6 @@
 from typing import Optional
+import csv
+import pandas as pd
 
 import account
 import sorts
@@ -146,6 +148,9 @@ def admins_services(admins: models.Users, users: models.Users, user_index: int,
 
     if admin_choice == "8":
         return None, feedbacks_messages
+
+    if admin_choice == "9":
+        export_feedbacks_to_file(feedbacks_messages)
 
     return admins, feedbacks_messages
 
@@ -314,7 +319,7 @@ def _get_user_information_by_field(users: models.Users) -> None:
     failed_attempt = FAILED_ATTEMPT
     user_choice = ""
     while failed_attempt:
-        user_choice = input("☞ Please enter the user's account number: ")
+        user_choice = input("☞ Please enter your choice: ")
         if user_choice not in FIELDS_SEARCH:
             failed_attempt -= 1
             print(f"You cannot search by field: {field}, please, try it again!!!")
@@ -329,8 +334,58 @@ def _get_user_information_by_field(users: models.Users) -> None:
     field = FIELDS_SEARCH[user_choice]
     sort_data = sorts.Sorting(users.data, field, "").arr
     if not sort_data:
-        print("There are no users at that time in database")
+        print("There are no users at that time in the database")
         return
 
     for user in sort_data:
-        _display_user_information(user)
+        _display_user_information(user) 
+
+def export_feedbacks_to_file(feedbacks_messages: messages.MessageQueue) -> None:
+    print("☞ Please choose the file format to export feedbacks:")
+    print("  ┌─────────────┐  ╭────────────────────────────╮     ")
+    print("  │             │  │ ▶︎ 1 • CSV      │   ")
+    print("  │  L O N G    │  ├─────────────────────┬──────╯     ")
+    print("  │  T U A N    │  │ ▶︎ 2 • Excel      │          ")
+    print("  └─────────────┘  ╰────────────────────────╯          ")
+
+    failed_attempt = FAILED_ATTEMPT
+    file_format = ""
+    while failed_attempt:
+        file_format = input("☞ Please enter your choice: ")
+        if file_format not in FILE_FORMAT_CHOICES:
+            failed_attempt -= 1
+            print("Wrong choice!!! Please choose only from 1 to 2")
+            print("You have %d try left!!!" % failed_attempt)
+        else:
+            break
+
+    if not failed_attempt or not file_format:
+        print("You enter invalid choice many times, please wait a few minutes to try it again!!!")
+        return
+
+    if file_format == "1":
+        export_feedbacks_to_csv(feedbacks_messages)
+    elif file_format == "2":
+        export_feedbacks_to_excel(feedbacks_messages)
+
+def export_feedbacks_to_csv(feedbacks_messages: messages.MessageQueue) -> None:
+    filename = "feedbacks.csv"
+    with open(filename, mode='w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(["Account Number", "Feedback"])
+        for feedback in feedbacks_messages:
+            writer.writerow([feedback[ACCOUNT_NUMBER], feedback[MESSAGE]])
+
+    print(f"Feedbacks have been exported to {filename}")
+
+def export_feedbacks_to_excel(feedbacks_messages: messages.MessageQueue) -> None:
+    data = {"Account Number": [], "Feedback": []}
+    for feedback in feedbacks_messages:
+        data["Account Number"].append(feedback[ACCOUNT_NUMBER])
+        data["Feedback"].append(feedback[MESSAGE])
+
+    df = pd.DataFrame(data)
+    filename = "feedbacks.xlsx"
+    df.to_excel(filename, index=False)
+
+    print(f"Feedbacks have been exported to {filename}")
